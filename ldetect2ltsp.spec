@@ -6,7 +6,6 @@ License:	GPL
 Group:		System/Servers
 URL:		http://www.ltsp.org
 Source0:	ldetect2ltsp
-BuildRoot:	%{_tmppath}/%{name}-%{version}-root
 
 %description
 This program will read in a device database of PCI Vendor/Device Ids and a
