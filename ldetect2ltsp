@@ -1,0 +1,357 @@
+#!/usr/bin/perl
+# Script to use the Mandrake ldetect-lst to generate lists in the
+# LTSP format. Added usb list, audio has three files, one for oss, one
+# for alsa, and one using the best module for the card.
+
+# BTW, *yes*, I *know* it's ugly, this is just a quick hack I did during
+# a weekend.
+
+#In what directory to find the files
+$filepath="/usr/share/ldetect-lst";
+#In what directory to place the results
+$results="/tmp/ldetect2ltsp";
+
+$kver=`uname -r`;
+chop $kver;
+$kpath="/lib/modules/$kver/";
+-d $kpath or die "Modules not in $kpath : Edit the file to get the right kernel version";
+
+# Get these files from:
+# http://cvs.mandrakesoft.com/cgi-bin/cvsweb.cgi/soft/ldetect-lst/lst/
+# or install the ldetect-lst package on Mandrake and the files will be in 
+# the /usr/share/ldetect-lst directory.
+$cardstable="$filepath/Cards+";
+-e $cardstable or die "Cannot find $cardstable\n";
+$pcitable="$filepath/pcitable";
+-e $pcitable or die "Cannot find $pcitable\n";
+
+mkdir "$results";
+open(SND,  ">$results/audiolist.bestdriver") or die "Can't create audiolist.bestdriver";
+open(ALSA, ">$results/audiolist.alsa") or die "Can't create audiolist.alsa";
+open(OSS,  ">$results/audiolist") or die "Can't create audiolist";
+open(NET,  ">$results/niclist") or die "Can't create niclist";
+open(USB,  ">$results/usblist") or die "Can't create usblist";
+open(VID,  ">$results/vidlist") or die "Can't create vidlist";
+
+#Cards that are not in MDK list or that are overriden by LTSP
+print OSS qq(
+10C8:0005       nm256_audio     #NM2200 MagicMedia 256AV
+10C8:0006       nm256_audio     #NM2360 MagicMedia 256ZX/256M6D
+10C8:0016       nm256_audio     #NM2380 MagicMedia 256XL+
+10C8:0025       nm256_audio     #NM2230 MagicMedia 256AV+
+10C8:8016       nm256_audio     #NM2380 MagicMedia 256XL+ Audio Device
+127A:4320       i810_audio      #810E Riptide PCI Audio Controller
+4005:0300       sb              #ALS300 PCI Audio Device
+4005:0308       sb              #ALS300+ PCI Audio Device
+4005:0309       sb              #ALS300+ PCI Input Controller
+8086:2125       i810_audio      #82801AB AC97 Audio Controller
+8086:2446       i810_audio      #82801BA/BAM AC97 Modem Controller
+);
+
+print NET qq(
+1011:0014       tulip	#Unknown card
+1011:0200       de4x5	#Unknown card
+1011:0900       de4x5	#Unknown card
+1011:1400       de4x5	#Unknown card
+1011:1900       de4x5	#Unknown card
+1011:1910       de4x5	#Unknown card
+1011:1930       de4x5	#Unknown card
+);
+
+print VID qq(
+1005:2064       vga       	# ALG2032/2064 alg2032  63067s1
+1005:2128       vga       	# ALG2364A
+1005:2364       vga       	# AL2364 GUI Accelerator
+1005:2464       vga       	# ALG2364A
+1005:2501       vga       	# ALG2564A/25128A
+1011:0004       tga             # DC21030 PCI Graphics Accelerator
+1011:000C       tga             # DC21130 PCI Integrated Graphics & Video Accel
+1011:000D       tga             # TGA2
+1023:9460       trident         # TGUI9460 32-bit GUI Accelerator
+1023:9470       trident         # TGUI9470
+1023:9540       trident         # Cyber9540 Video Acclerator
+1023:9683       trident         # TGUI9683 GUI Accelerator
+1023:9750       trident         # 3DImage 9750 PCI/AGP trident dgi
+1023:9753       trident         # TGUI9753 Video Accelerator
+1023:9754       trident         # TGUI9753 Wave Video Accelerator
+1023:9783       trident         # TGUI9783
+1023:9785       trident         # TGUI9785
+102B:1525       mga             # Fusion G450 AGP
+102B:1527       mga             # Fusion Plus G800 AGP
+102B:4536       mga             # Meteor 2/MC Video Capture Card
+102C:00F5       chips           # 68555 GUI Controller
+102C:01E0       chips           # 65560 PCI Flat Panel/CRT VGA Accelerator
+102C:0C30       chips           # 69030 AGP/PCI Flat Panel/CRT VGA Accelerator
+1039:0204       sis             # SiS 6215 PCI Graphics & Video Accelerator
+1039:6205       sis             # SiS6205 PCI VGA Controller
+1039:6225       sis             # SiS 6225 PCI Graphics & Video Accelerator
+10DE:000B       nv              # GUI Accelerator
+10DE:000C       nv              # Targa 1000 Video Capture & Editing card
+10DE:000D       nv              # GUI Accelerator
+10DE:000E       nv              # GUI Accelerator
+10DE:000F       nv              # GUI Accelerator
+10DE:0010       nv              # Mutara V08 (NV2)
+10DE:0011       nv              # GUI Accelerator
+10DE:0012       nv              # GUI Accelerator
+10DE:0013       nv              # GUI Accelerator
+10DE:0014       nv              # GUI Accelerator
+10DE:0015       nv              # GUI Accelerator
+10DE:0018       nv              # Riva 128 Riva 128 accelerator
+10DE:0019       nv              # Riva 128 ZX
+10EA:2010       fbdev           # Intergraph|CyberPro 2010
+1102:0101       nv              # Creative Labs|GeForce 256 DDR Nvida Corp. Video
+1102:1017       tdfx            # Creative Labs|Banshee 3D Blaster Banshee PCI CT6760
+1142:3210       apm             # ProMotion 3210 VGA/AVI Playback Accelerator
+1142:6410       apm             # Alliance Semiconductor|6410 6422 GUI Accelerator
+1142:6412       apm             # Alliance Semiconductor|GUI Accelerator
+1142:6420       apm             # Alliance Semiconductor|GUI Accelerator
+1142:6426       apm             # GUI Accelerator
+121A:0001       tdfx            # Voodoo Voodoo 3D Acceleration Chip
+121A:0002       tdfx            # Voodoo2 Voodoo 2 3D Accelerator
+121A;0007       tdfx            # Voodoo4
+12D2:002A       nv              # NV5 Riva TNT2
+12D2:002B       nv              # NV5 Riva TNT2
+12D2:002E       nv              # NV6 Vanta
+12D2:002F       nv              # NV6 Vanta
+8086:1102	i810		# 82815 Internal Graphics Device
+8086:1112	i810		# 82815 Internal Graphics Device
+FFFE:0710       vmware          # Virtual SVGA
+);
+
+
+#From the Mandrake drakxtools-newt, /usr/lib/libDrakX/harddrake/sound.pm
+# lists filled with Danny Tholen help, enhanced by Thierry Vignaud
+# No ALSA for OSS's 
+#    o isa cards: msnd_pinnacle, pas2, 
+#    o pci cards: ad1889, sam9407
+# No OSS for ALSA's
+#    o pci cards: snd-als4000, snd-es968, snd-hdsp
+#    o isa cards: snd-azt2320, snd-cs4231, snd-cs4236, 
+#      snd-dt0197h, snd-korg1212, snd-rme32
+our %alsa2oss = 
+    (
+     "snd-ad1816a" =>  "ad1816" , # isa
+     "snd-ad1848"  =>  "ad1848", # isa
+     "snd-ali5451" =>  "trident" ,
+     "snd-als100"  =>  "sb" , # isa
+     "snd-bt87x"   =>  "btaudio" ,
+     "snd-cmi8330" =>  "sb" , # isa
+     "snd-cmipci"  =>  "cmpci" ,
+     "snd-cs4232"  =>  "cs4232" ,  # isa
+     "snd-cs4236"  =>  "ad1848" , # isa
+     "snd-cs4281"  =>  "cs4281" ,
+     "snd-cs46xx"  =>  "cs46xx" ,
+     "snd-emu10k1" =>  "emu10k1" ,
+     "snd-ens1370" =>  "es1370" ,
+     "snd-ens1371" =>  "es1371" ,
+     "snd-es1688"  =>  "sb" , # isa
+     "snd-es18xx"  =>  "sb" , # isa
+     "snd-es1938"  =>  "esssolo1" ,
+     "snd-es1968"  =>  "maestro" , # isa
+     "snd-es968"   =>  "sb" ,
+     "snd-fm801"   =>  "forte" ,
+     "snd-gusclassic" =>  "gus" , # isa
+     "snd-gusextreme" =>  "gus" , # isa
+     "snd-gusmax"  =>  "gus" ,    # isa
+     "snd-intel8x0" =>  "i810_audio",
+     "snd-interwave" =>  "gus" ,  # isa
+     "snd-maestro3" =>  "maestro3" ,
+     "snd-mpu401"  =>  "mpu401" ,
+     "snd-nm256"   =>  "nm256_audio" ,
+     "snd-opl3sa2" =>  "opl3sa2" , # isa
+     "snd-opti93x" =>  "mad16" ,
+     "snd-rme96"   =>  "rme96xx" , # pci
+     "snd-rme9652" =>  "rme96xx" , # pci
+     "snd-sb16"    => "sb",
+     "snd-sb8"     =>  "sb" ,
+     "snd-sbawe"   =>  "awe_wave" ,
+     "snd-sgalaxy" =>  "sgalaxy" , # isa
+     "snd-sonicvibes" =>  "sonicvibes" ,
+     "snd-trident" =>  "trident" ,
+     "snd-usb-audio" =>  "audio" , # usb
+     "snd-via82xx"  =>  "via82cxxx_audio" ,
+     "snd-wavefront" =>  "wavefront" , # isa
+     "snd-ymfpci"  =>  "ymfpci" 
+     );
+
+
+our %oss2alsa = 
+    (
+     "ad1816"  =>  "snd-ad1816a" ,
+     "ad1848"  =>  "snd-ad1848",
+     "ali5455" =>  "snd-intel8x0" ,
+     "audigy"  =>  "snd-emu10k1" ,
+     "audio" =>  "snd-usb-audio" , # usb
+     "awe_wave" =>  "snd-sbawe" ,
+     "btaudio" =>  "snd-bt87x" ,
+     "cmpci"   =>  "snd-cmipci" ,
+     "cs4232"  =>  "snd-cs4232" ,
+     "cs4281"  =>  "snd-cs4281" ,
+     "cs46xx"  =>  "snd-cs46xx" ,
+     "emu10k1" =>  "snd-emu10k1" ,
+     "es1370"  =>  "snd-ens1370" ,
+     "es1371"  =>  "snd-ens1371" ,
+     "esssolo1" =>  "snd-es1938" ,
+     "forte"   =>  "snd-fm801" ,
+     "gus"     => "snd-gusclassic",
+     "i810_audio" =>  "snd-intel8x0" ,
+     "ice1712" =>  "snd-ice1712" ,
+     "mad16"   =>  "snd-opti93x" ,
+     "maestro" =>  "snd-es1968" ,
+     "maestro3" =>  "snd-maestro3" ,
+     "mpu401"  =>  "snd-mpu401" ,
+     "nm256_audio" =>  "snd-nm256" ,
+     "nvaudio" =>  "snd-intel8x0" ,
+     "opl3"    =>  "snd-opl3sa2" ,
+     "opl3sa"  =>  "snd-opl3sa2" ,
+     "opl3sa2" =>  "snd-opl3sa2" ,
+     "pss" =>  "snd-ad1848" ,
+     "rme96xx" =>  "snd-rme96",
+     "sb"      =>  "snd-sb16" ,
+     "sgalaxy" =>  "snd-sgalaxy" ,
+     "sonicvibes" =>  "snd-sonicvibes" ,
+     "sscape"  =>  "snd-sb16" ,
+     "trident" =>  "snd-trident" ,
+     "via82cxxx_audio" =>  "snd-via82xx" ,
+     "wavefront" =>  "snd-wavefront" ,
+     "ymfpci"  =>  "snd-ymfpci" 
+     );
+
+
+print "\nScanning XFree86 drivers..\n";
+@wholelist=`pushd /usr/X11R6/lib/modules/drivers >/dev/null;ls|grep -v linux;popd >/dev/null`;
+foreach(@wholelist) {
+  chop;
+  s/\.o//;
+  s/_drv//;
+  print $_." ";
+  $XF4{$_}="yes"; 
+}
+print "\n";
+
+open (VIDCARD, $cardstable) or die "Can't find $cardstable\n";
+while(<VIDCARD>) {
+  chop;
+  if (/^NAME/) {
+    $newcard=1;
+    s/NAME //;
+    $cardname=$_;
+  }
+  if (/^DRIVER /) {
+    s/DRIVER //;
+    $card{$cardname}{'driver'} = $_;
+  }
+
+  if (/^SERVER/) {
+    s/SERVER //;
+    $card{$cardname}{'server'} = "XF86_".$_;
+  }
+
+  if (/^SEE/) {
+    s/SEE //;
+    $card{$cardname}{'server'} = $card{$_}{'server'};
+    $card{$cardname}{'driver'} = $card{$_}{'driver'};
+  }
+}
+
+#foreach $item (sort (keys %card)) {
+#print "##$item## : driver $card{$item}{'driver'}, server $card{$item}{'server'}\n";
+#}
+
+
+print "\n\nScanning modules.pcimap...\n";
+@wholelist=`cat $kpath/modules.pcimap|grep -v '#'|cut -f1 -d" "|sort|uniq`;
+foreach(@wholelist) {
+  chop;
+  $mod=$_;
+  print $_." ";
+  $_=`find $kpath -iname $mod.*`;
+  chop;
+  next if(/\/net\/irda\//);
+  next if(/\/net\/pcmcia\//);
+  next if(/\/net\/fc\//);
+  next if(/\/net\/arcnet\//);
+  next if(/\/net\/pcmcia\//);
+  next if(/\/net\/tokenring\//);
+  next if(/\/net\/wan\//);
+  if(/\/net\//) { $module{$mod}="Network" }
+  if(/\/sound\//) { $module{$mod}="Sound" }
+  if(/acx100/) { $module{$mod}="Network" }
+  if(/bcm.*00/) { $module{$mod}="Network" }
+  if(/hostap/) { $module{$mod}="Network" }
+  if(/prism25/) { $module{$mod}="Network" }
+  if(/\/usb\/host\//) { $module{$mod}="USB" }
+}
+print "\n";
+
+
+
+print "\n\nProcessing PCI IDs\n";
+open (PCI, $pcitable) or die "Can't find $pcitable\n";
+while(<PCI>) {
+  if(/0x/) {
+    next if(/\"unknown\"/);
+    $found=0;  
+    chop;
+    $ext="";
+    ($id1,$id2,$id3,$id4,$id5,$id6)=split('\t');
+    if($id5 ne "") { $id3=$id5; $id4=$id6; $id5=""; $id6=""; }
+    $id1=~s/0x//;
+    $id1=uc($id1);
+    $id2=~s/0x//;
+    $id2=uc($id2);
+    $id3=~s/\"//g;
+    $id4=~s/\"//g;
+    $dup=$pci{"$id1:$id2"};
+    if( $dup ne "") {
+      #print "DUPLICATE: $id1:$id2 $dup ### $id4\n";
+      next;
+    }
+
+    if(/Card:/) {
+      $id3=~s/Card://;
+      $driver=$card{$id3}{'driver'};
+      $server=$card{$id3}{'server'};
+      if(($driver eq "") && ($server eq "")) { print "CARD NOT FOUND: $id3\n" }
+      if($XF4{$driver} ne "yes") { 
+	print "XFREE86 driver not found $driver $id3\n";			
+      } else {
+        print VID "$id1:$id2\t$driver\t#$id4\n";
+	$pci{"$id1:$id2"}=$id4;
+	print ".";
+      }
+      next;
+    }
+
+    if($module{$id3} eq "Network") {
+        print NET "$id1:$id2\t$id3\t#$id4\n";
+	$pci{"$id1:$id2"}=$id4;
+	next;
+    }
+
+    if($module{$id3} eq "Sound") {
+        print SND "$id1:$id2\t$id3\t#$id4\n";
+	$pci{"$id1:$id2"}=$id4;
+        $alsa=$oss2alsa{$id3};
+        if($alsa eq "") { $alsa=$id3 }
+        print ALSA "$id1:$id2\t$alsa\t#$id4\n";
+        $oss=$alsa2oss{$id3};
+        if($oss eq "") { $oss=$id3 }
+        print OSS "$id1:$id2\t$oss\t#$id4\n";
+	next;
+    }
+
+    if($module{$id3} eq "USB") {
+        print USB "$id1:$id2\t$id3\t#$id4\n";
+	$pci{"$id1:$id2"}=$id4;
+	next;
+    }
+
+#    print USB "$id1:$id2\t$id3\t#$id4\n";
+
+
+  }
+}
+
+
+print "\n\n\nDone! Your files are in the $results/ directory.\n\n\n";
