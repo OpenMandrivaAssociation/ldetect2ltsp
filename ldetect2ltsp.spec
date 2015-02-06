@@ -1,7 +1,7 @@
 Summary:	Utility to convert from Mandriva ldetect to LTSP format
 Name:		ldetect2ltsp
 Version:	1.0
-Release:	%mkrel 5
+Release:	6
 License:	GPL
 Group:		System/Servers
 URL:		http://www.ltsp.org
