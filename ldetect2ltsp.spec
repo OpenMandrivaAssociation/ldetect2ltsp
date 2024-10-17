@@ -4,7 +4,7 @@ Version:	1.0
 Release:	6
 License:	GPL
 Group:		System/Servers
-URL:		http://www.ltsp.org
+URL:		https://www.ltsp.org
 Source0:	ldetect2ltsp
 BuildRoot:	%{_tmppath}/%{name}-%{version}-root
 
